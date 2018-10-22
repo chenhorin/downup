@@ -1,7 +1,6 @@
 package net.coding.codingftp.service.impl;
 
 import com.google.common.collect.Lists;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import lombok.extern.slf4j.Slf4j;
 import net.coding.codingftp.VO.PicVO;
 import net.coding.codingftp.common.ServerResponse;
@@ -113,6 +112,31 @@ public class FileServiceImpl implements IFileService {
         }
     }
 
+    @Override
+    public List<String> getPicListForPC(String userName) {
+
+        List<String> result = new ArrayList();
+        ArrayList<File> targetDir = new ArrayList<>();
+
+        File file = new File(DownloadController.TOMCAT_PATH);
+        ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
+        for (String fileDir : fileDirs) {
+            String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
+            if (StringUtils.equals(fileName, userName)) {
+                targetDir = FileUtil.getFiles(fileDir);
+            }
+        }
+
+        for (File fileItem : targetDir) {
+            // 返回相对路径
+//                picVO.setPicURL(PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName());
+            result.add(PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName());
+        }
+        return result;
+    }
+
+
+
 //    上传到ftp
     private String uploadFTP (MultipartFile file, File targetFile){
             try {
@@ -143,6 +167,7 @@ public class FileServiceImpl implements IFileService {
         }
         return targetFile.getName();
     }
+
 //      获取文件夹下对应Username文件夹的文件
     private ArrayList<File> getUserPicFileList(String dirName,String userName) {
         ArrayList<String> fileDirs = FileUtil.getFileDirs(dirName);

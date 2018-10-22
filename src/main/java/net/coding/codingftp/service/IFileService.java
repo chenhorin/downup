@@ -13,4 +13,6 @@ public interface IFileService {
     ServerResponse<Integer> getPicNum(String userName);
 
     ServerResponse<List<PicVO>> getPicList(String userName);
+
+    List<String> getPicListForPC(String userName);
 }
