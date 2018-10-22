@@ -1,12 +1,14 @@
 package net.coding.codingftp.service.impl;
 
 import com.google.common.collect.Lists;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import lombok.extern.slf4j.Slf4j;
 import net.coding.codingftp.common.ServerResponse;
 import net.coding.codingftp.controller.DownloadController;
 import net.coding.codingftp.service.IFileService;
 import net.coding.codingftp.util.FTPUtil;
 import net.coding.codingftp.util.FileUtil;
+import net.coding.codingftp.util.PropertiesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service("iFileService")
 @Slf4j
@@ -42,12 +45,13 @@ public class FileServiceImpl implements IFileService {
         return uploadNative(file,targetFile);
     }
 
-
+    @Override
     public ServerResponse<Integer> getPicNum(String userName) {
-        File file = new File(DownloadController.TOMCAT_PATH);
-        if (file == null) {
+        if (DownloadController.TOMCAT_PATH == null) {
             return ServerResponse.createByErrorMessage("还未上传任何文件");
         }
+        File file = new File(DownloadController.TOMCAT_PATH);
+
 //        获取其最后一个用添加的子文件夹下的父文件夹
         ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
 
@@ -61,6 +65,46 @@ public class FileServiceImpl implements IFileService {
         }
         return ServerResponse.createByErrorMessage("未发现此用户");
     }
+
+    @Override
+    public ServerResponse<List<String>> getPicList(String userName) {
+        if (DownloadController.TOMCAT_PATH == null) {
+            return ServerResponse.createByErrorMessage("还未上传任何文件");
+        }
+        /*File file = new File(DownloadController.TOMCAT_PATH);
+        List<String> userPicFileListURL = new ArrayList();
+
+        ArrayList<File> userPicFileList = getUserPicFileList(file.getName(), userName);
+        if (userPicFileList.size() != 0) {
+            for (File fileItem : userPicFileList) {
+                String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem;
+                userPicFileListURL.add(url);
+            }
+            return ServerResponse.createBySuccess(userPicFileListURL);
+        }else {
+            return ServerResponse.createByErrorMessage("该用户无图片");
+        }*/
+        File file = new File(DownloadController.TOMCAT_PATH);
+        List<String> userPicFileListURL = new ArrayList();
+        ArrayList<File> targetDir = new ArrayList<>();
+        ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
+        for (String fileDir : fileDirs) {
+            String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
+            if (StringUtils.equals(fileName, userName)) {
+                targetDir = FileUtil.getFiles(fileDir);
+            }
+        }
+        if (targetDir.size() != 0) {
+            for (File fileItem : targetDir) {
+                String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName();
+                userPicFileListURL.add(url);
+            }
+            return ServerResponse.createBySuccess(userPicFileListURL);
+        }else {
+            return ServerResponse.createByErrorMessage("该用户无图片");
+        }
+    }
+
 //    上传到ftp
     private String uploadFTP (MultipartFile file, File targetFile){
             try {
@@ -77,21 +121,32 @@ public class FileServiceImpl implements IFileService {
             }
             return targetFile.getName();
         }
-//      上传到本地
+//      单张图片上传到本地
     private String uploadNative (MultipartFile file, File targetFile){
         try {
+            /*for (File fileItem : Lists.newArrayList(targetFile)) {
+                file.transferTo(fileItem);
+            }*/
             file.transferTo(targetFile);
-            //文件已经上传成功了
 
-//            FTPUtil.uploadFile(Lists.newArrayList(targetFile));
-            //已经上传到ftp服务器上
-
-//            targetFile.delete();
         } catch (IOException e) {
             log.error("上传文件异常", e);
             return null;
         }
         return targetFile.getName();
     }
+//      获取文件夹下对应Username文件夹的文件
+    private ArrayList<File> getUserPicFileList(String dirName,String userName) {
+        ArrayList<String> fileDirs = FileUtil.getFileDirs(dirName);
+        ArrayList<File> targetDir = new ArrayList<>();
 
+        for (String fileDir : fileDirs) {
+            String fileName = fileDir.substring(fileDir.lastIndexOf("\\") + 1);
+//            是否是目标文件夹
+            if (StringUtils.equals(fileName, userName)) {
+                targetDir = FileUtil.getFiles(fileDir);
+            }
+        }
+        return targetDir;
+    }
 }

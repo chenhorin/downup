@@ -5,6 +5,7 @@ import net.coding.codingftp.common.ServerResponse;
 import net.coding.codingftp.service.IFileService;
 import net.coding.codingftp.util.PropertiesUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,18 @@ public class DownloadController {
     @PostMapping("/picnum")
     public ServerResponse<Integer> getPicNum(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
         return iFileService.getPicNum(userName);
+    }
+
+    @GetMapping("/DownPhone")
+    public ServerResponse getPicList(HttpSession session, @RequestParam(value = "UserName", required = false) String userName,
+                                              @RequestParam(value = "Number",defaultValue = "0")Integer number) {
+        return iFileService.getPicList(userName);
+    }
+
+//    U3D获取图片url
+    @GetMapping("/Login")
+    public ServerResponse getPicList(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
+        return iFileService.getPicList(userName);
     }
 }
 
