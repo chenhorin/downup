@@ -19,6 +19,8 @@ import java.util.Map;
 public class DownloadController {
     public static String TOMCAT_PATH = null;
 
+    public static Integer PIC_COUNT = 0;
+
     @Autowired
     private IFileService iFileService;
 
@@ -30,6 +32,7 @@ public class DownloadController {
                                  @RequestParam(value = "Number", required = false) Integer number,
                                  @RequestParam(value = "Type", required = false) Integer type,
                                  HttpServletRequest request) {
+        PIC_COUNT++;
         String path = request.getSession().getServletContext().getRealPath(userName);
         TOMCAT_PATH = path;
         String targetFileName = iFileService.upload(file, path);

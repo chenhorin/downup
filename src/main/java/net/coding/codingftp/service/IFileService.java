@@ -1,5 +1,6 @@
 package net.coding.codingftp.service;
 
+import net.coding.codingftp.VO.PicVO;
 import net.coding.codingftp.common.ServerResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,5 +12,5 @@ public interface IFileService {
 
     ServerResponse<Integer> getPicNum(String userName);
 
-    ServerResponse<List<String>> getPicList(String userName);
+    ServerResponse<List<PicVO>> getPicList(String userName);
 }

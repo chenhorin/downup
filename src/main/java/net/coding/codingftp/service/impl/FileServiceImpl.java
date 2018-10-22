@@ -3,6 +3,7 @@ package net.coding.codingftp.service.impl;
 import com.google.common.collect.Lists;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import lombok.extern.slf4j.Slf4j;
+import net.coding.codingftp.VO.PicVO;
 import net.coding.codingftp.common.ServerResponse;
 import net.coding.codingftp.controller.DownloadController;
 import net.coding.codingftp.service.IFileService;
@@ -67,26 +68,27 @@ public class FileServiceImpl implements IFileService {
     }
 
     @Override
-    public ServerResponse<List<String>> getPicList(String userName) {
+    public ServerResponse<List<PicVO>> getPicList(String userName) {
         if (DownloadController.TOMCAT_PATH == null) {
             return ServerResponse.createByErrorMessage("还未上传任何文件");
         }
         /*File file = new File(DownloadController.TOMCAT_PATH);
-        List<String> userPicFileListURL = new ArrayList();
+        List<String> picResultVOList = new ArrayList();
 
         ArrayList<File> userPicFileList = getUserPicFileList(file.getName(), userName);
         if (userPicFileList.size() != 0) {
             for (File fileItem : userPicFileList) {
                 String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem;
-                userPicFileListURL.add(url);
+                picResultVOList.add(url);
             }
-            return ServerResponse.createBySuccess(userPicFileListURL);
+            return ServerResponse.createBySuccess(picResultVOList);
         }else {
             return ServerResponse.createByErrorMessage("该用户无图片");
         }*/
-        File file = new File(DownloadController.TOMCAT_PATH);
-        List<String> userPicFileListURL = new ArrayList();
+        List<PicVO> picResultVOList = new ArrayList();
         ArrayList<File> targetDir = new ArrayList<>();
+
+        File file = new File(DownloadController.TOMCAT_PATH);
         ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
         for (String fileDir : fileDirs) {
             String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
@@ -95,11 +97,17 @@ public class FileServiceImpl implements IFileService {
             }
         }
         if (targetDir.size() != 0) {
+//            计数器
+            int number = 0;
             for (File fileItem : targetDir) {
-                String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName();
-                userPicFileListURL.add(url);
+                PicVO picVO = new PicVO();
+                // 返回相对路径
+//                picVO.setPicURL(PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName());
+                picVO.setPicURL(userName + "/" + fileItem.getName());
+                picVO.setNumber(++number);
+                picResultVOList.add(picVO);
             }
-            return ServerResponse.createBySuccess(userPicFileListURL);
+            return ServerResponse.createBySuccess(picResultVOList);
         }else {
             return ServerResponse.createByErrorMessage("该用户无图片");
         }
