@@ -6,8 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
 @Configuration
-public class CodingftpApplication {
-
+public class CodingftpApplication{
     public static void main(String[] args) {
         SpringApplication.run(CodingftpApplication.class, args);
     }

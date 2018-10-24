@@ -1,32 +1,46 @@
 package net.coding.codingftp.controller;
 
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import net.coding.codingftp.DTO.PhoneUserJsonDTO;
 import net.coding.codingftp.DTO.PicCountByUserDTO;
-import net.coding.codingftp.VO.PicVO;
+import net.coding.codingftp.VO.PhoneThemeVO;
+import net.coding.codingftp.VO.PhoneURLVO;
 import net.coding.codingftp.common.ServerResponse;
+import net.coding.codingftp.pojo.UserTitleInfo;
 import net.coding.codingftp.service.IFileService;
 import net.coding.codingftp.util.PropertiesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import sun.misc.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class DownloadController {
-    public static String TOMCAT_PATH = null;
-
-
     @Autowired
     private IFileService iFileService;
+
+    public static String TOMCAT_PATH = null;
+
+    @Value("${static.json.file}")
+    private Resource jsonFile;
+
 
     private static List<PicCountByUserDTO> picCountByUserDTOS = new ArrayList<>();
 
@@ -37,7 +51,11 @@ public class DownloadController {
                                  @RequestParam(value = "Number") Integer number,
                                  @RequestParam(value = "Type", required = false) Integer type,
                                  HttpServletRequest request) {
+        if (type == 0) {
+            return ServerResponse.createBySuccess();
+        }
         String path = request.getSession().getServletContext().getRealPath(userName);
+        System.out.println(path);
         TOMCAT_PATH = path;
 //      判断是否已经存在当前用户，根据结果来进行Number的保存
 
@@ -74,7 +92,7 @@ public class DownloadController {
                 return userDTO.getNumber();
             }
         }
-        return null;
+        return 0;
     }
 
     //    手机获取图片列表
@@ -84,10 +102,61 @@ public class DownloadController {
         return iFileService.getPicList(userName);
     }
 
-    //    U3D获取图片url,下载
+    //    U3D转到手机端
     @GetMapping("/Login")
-    public List<String> getPicList(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
-        return iFileService.getPicListForPC(userName);
+    public PhoneURLVO<String> getPicList(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
+        for (PicCountByUserDTO userDTO : picCountByUserDTOS) {
+            if (StringUtils.equals(userDTO.getName(), userName)) {
+                PhoneURLVO URL = new PhoneURLVO();
+                URL.setData(PropertiesUtil.getProperty("phone.http.prefix") + "?u=" + userName);
+                return URL;
+            }
+        }
+        PhoneURLVO URL = new PhoneURLVO();
+        URL.setData(PropertiesUtil.getProperty("phone.http.prefix"));
+        return URL;
+    }
+
+
+//      根据用户返回不同的主题
+    @GetMapping("/getTheme")
+    public ServerResponse getTheme(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
+        String json = null;
+        Gson gson = new Gson();
+        List<UserTitleInfo> data = new ArrayList<>();
+        List<String> picList = new ArrayList<>();
+//        读取json配置文件,并且转化为java对象
+        try {
+            json = new String(IOUtils.readFully(jsonFile.getInputStream(), -1, true));
+            PhoneUserJsonDTO phoneUserJsonDTO = gson.fromJson(json,
+                    new TypeToken<PhoneUserJsonDTO>(){
+                    }.getType());
+            if (phoneUserJsonDTO == null) {
+                return ServerResponse.createByErrorMessage("配置文件没有添加用户");
+            }
+            data = phoneUserJsonDTO.getData();
+
+        } catch (IOException e) {
+            log.info("静态json文件读取错误");
+        }
+        if (data.size() == 0) {
+            return ServerResponse.createByErrorMessage("Json数据转换失败,数据未获取");
+        } else {
+            for (UserTitleInfo datum : data) {
+                if (StringUtils.equals(userName, datum.getUsername())) {
+                    PhoneThemeVO phoneThemeVO = new PhoneThemeVO();
+                    phoneThemeVO.setUserName(userName);
+                    phoneThemeVO.setTitle(datum.getTitle());
+                    picList.add("img/" + userName + "/1.png");
+                    picList.add("img/" + userName + "/12.png");
+                    picList.add("img/" + userName + "/mid.png");
+                    picList.add("img/" + userName + "/mid-75.png");
+                    phoneThemeVO.setThemePics(picList);
+                    return ServerResponse.createBySuccess(phoneThemeVO);
+                }
+            }
+        }
+        return ServerResponse.createByError();
     }
 }
 

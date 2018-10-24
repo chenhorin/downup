@@ -44,9 +44,7 @@ public class ScheduledTasks {
                     /*System.out.println(fileName);
                     subFile.delete();*/
                 if ((System.currentTimeMillis() - Long.valueOf(timestamp)) >= hour*3600000) {
-                    System.out.println("已经上传的文件"+fileName);
                     subFile.delete();
-                    System.out.println("已删除");
                 }
             }
 //                String fileExtensionName = fileName.substring(fileName.lastIndexOf(".") + 1);

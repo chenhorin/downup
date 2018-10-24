@@ -56,7 +56,7 @@ public class FileServiceImpl implements IFileService {
         ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
 
         for (String fileDir : fileDirs) {
-            String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
+            String fileName = fileDir.substring(fileDir.lastIndexOf("/" ) + 1);
             System.out.println(fileName);
             if (StringUtils.equals(fileName, userName)) {
                 ArrayList<File> targetDir = FileUtil.getFiles(fileDir);
@@ -66,31 +66,24 @@ public class FileServiceImpl implements IFileService {
         return ServerResponse.createByErrorMessage("未发现此用户");
     }
 
+
+
+
     @Override
+//    手机端获取图片
     public ServerResponse<List<PicVO>> getPicList(String userName) {
         if (DownloadController.TOMCAT_PATH == null) {
             return ServerResponse.createByErrorMessage("还未上传任何文件");
         }
-        /*File file = new File(DownloadController.TOMCAT_PATH);
-        List<String> picResultVOList = new ArrayList();
 
-        ArrayList<File> userPicFileList = getUserPicFileList(file.getName(), userName);
-        if (userPicFileList.size() != 0) {
-            for (File fileItem : userPicFileList) {
-                String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem;
-                picResultVOList.add(url);
-            }
-            return ServerResponse.createBySuccess(picResultVOList);
-        }else {
-            return ServerResponse.createByErrorMessage("该用户无图片");
-        }*/
         List<PicVO> picResultVOList = new ArrayList();
         ArrayList<File> targetDir = new ArrayList<>();
 
         File file = new File(DownloadController.TOMCAT_PATH);
         ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
         for (String fileDir : fileDirs) {
-            String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
+//            注意linux的盘符是相反的
+            String fileName = fileDir.substring(fileDir.lastIndexOf(File.separator) + 1);
             if (StringUtils.equals(fileName, userName)) {
                 targetDir = FileUtil.getFiles(fileDir);
             }
@@ -98,10 +91,11 @@ public class FileServiceImpl implements IFileService {
         if (targetDir.size() != 0) {
 //            计数器
             int number = 0;
+//            todo 排序倒序
             for (File fileItem : targetDir) {
                 PicVO picVO = new PicVO();
                 // 返回相对路径
-//                picVO.setPicURL(PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName());
+//              picVO.setPicURL(PropertiesUtil.getProperty("ftp.server.http.prefix") + userName + "/" + fileItem.getName());
                 picVO.setPicURL(userName + "/" + fileItem.getName());
                 picVO.setNumber(++number);
                 picResultVOList.add(picVO);
@@ -121,7 +115,7 @@ public class FileServiceImpl implements IFileService {
         File file = new File(DownloadController.TOMCAT_PATH);
         ArrayList<String> fileDirs = FileUtil.getFileDirs(file.getParent());
         for (String fileDir : fileDirs) {
-            String fileName = fileDir.substring(fileDir.lastIndexOf("\\" ) + 1);
+            String fileName = fileDir.substring(fileDir.lastIndexOf(File.separator ) + 1);
             if (StringUtils.equals(fileName, userName)) {
                 targetDir = FileUtil.getFiles(fileDir);
             }
