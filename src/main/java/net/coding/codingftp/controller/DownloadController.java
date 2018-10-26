@@ -51,7 +51,7 @@ public class DownloadController {
                                  @RequestParam(value = "Number") Integer number,
                                  @RequestParam(value = "Type", required = false) Integer type,
                                  HttpServletRequest request) {
-        if (type == 0) {
+        if (0 == type) {
             return ServerResponse.createBySuccess();
         }
         String path = request.getSession().getServletContext().getRealPath(userName);
