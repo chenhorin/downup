@@ -11,7 +11,7 @@ public class FileUtil {
         ArrayList<File> files = new ArrayList<>();
         File file = new File(path);
         File[] tempList = file.listFiles();
-        Arrays.sort(tempList, new FileCompratorByLastModified());
+        Arrays.sort(tempList, new FileComparetorByLastModified());
         for (int i = 0; i < tempList.length; i++) {
             if (tempList[i].isFile()) {
                 files.add(tempList[i]);

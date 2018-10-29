@@ -6,7 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import net.coding.codingftp.DTO.PhoneUserJsonDTO;
 import net.coding.codingftp.DTO.PicCountByUserDTO;
-import net.coding.codingftp.VO.PhoneThemeVO;
+import net.coding.codingftp.VO.PhonePicListAndThemeVO;
 import net.coding.codingftp.VO.PhoneURLVO;
 import net.coding.codingftp.common.ServerResponse;
 import net.coding.codingftp.pojo.UserTitleInfo;
@@ -99,7 +99,62 @@ public class DownloadController {
     @GetMapping("/DownForPhone")
     public ServerResponse getPicList(HttpSession session, @RequestParam(value = "UserName", required = false) String userName,
                                      @RequestParam(value = "Number", defaultValue = "0") Integer number) {
-        return iFileService.getPicList(userName);
+
+        PhonePicListAndThemeVO voData = new PhonePicListAndThemeVO();
+        List<String> picList = new ArrayList<>();
+
+        if (StringUtils.isBlank(userName)) {
+            picList.add("img/admin/1.png");
+            picList.add("img/admin/12.png");
+            picList.add("img/admin/mid.png");
+            picList.add("img/admin/mid-75.png");
+            voData.setThemePics(picList);
+            voData.setTitle("魔幻照相馆");
+            return ServerResponse.createBySuccess(voData);
+        }
+
+        PhonePicListAndThemeVO tempData = iFileService.getPicList(userName).getData();
+        if (null != tempData) {
+            voData = tempData;
+        }
+
+
+        //组装主题和标题
+        String json = null;
+        Gson gson = new Gson();
+        List<UserTitleInfo> data = new ArrayList<>();
+//        读取json配置文件,并且转化为java对象
+        try {
+            json = new String(IOUtils.readFully(jsonFile.getInputStream(), -1, true));
+            PhoneUserJsonDTO phoneUserJsonDTO = gson.fromJson(json,
+                    new TypeToken<PhoneUserJsonDTO>() {
+                    }.getType());
+            if (null == phoneUserJsonDTO) {
+                return ServerResponse.createByErrorMessage("配置文件没有添加用户");
+            }
+            data = phoneUserJsonDTO.getData();
+
+        } catch (IOException e) {
+            log.info("静态json文件读取错误");
+        }
+        if (data.size() == 0) {
+
+            return ServerResponse.createByErrorMessage("Json数据转换失败,数据未获取");
+        } else {
+            for (UserTitleInfo datum : data) {
+                if (StringUtils.equals(userName, datum.getUsername())) {
+                    picList.add("img/" + userName + "/1.png");
+                    picList.add("img/" + userName + "/12.png");
+                    picList.add("img/" + userName + "/mid.png");
+                    picList.add("img/" + userName + "/mid-75.png");
+
+                    voData.setTitle(datum.getTitle());
+                    voData.setThemePics(picList);
+                    return ServerResponse.createBySuccess(voData);
+                }
+            }
+        }
+        return ServerResponse.createByError();
     }
 
     //    U3D转到手机端
@@ -117,46 +172,5 @@ public class DownloadController {
         return URL;
     }
 
-
-//      根据用户返回不同的主题
-    @GetMapping("/getTheme")
-    public ServerResponse getTheme(HttpSession session, @RequestParam(value = "UserName", required = false) String userName) {
-        String json = null;
-        Gson gson = new Gson();
-        List<UserTitleInfo> data = new ArrayList<>();
-        List<String> picList = new ArrayList<>();
-//        读取json配置文件,并且转化为java对象
-        try {
-            json = new String(IOUtils.readFully(jsonFile.getInputStream(), -1, true));
-            PhoneUserJsonDTO phoneUserJsonDTO = gson.fromJson(json,
-                    new TypeToken<PhoneUserJsonDTO>(){
-                    }.getType());
-            if (phoneUserJsonDTO == null) {
-                return ServerResponse.createByErrorMessage("配置文件没有添加用户");
-            }
-            data = phoneUserJsonDTO.getData();
-
-        } catch (IOException e) {
-            log.info("静态json文件读取错误");
-        }
-        if (data.size() == 0) {
-            return ServerResponse.createByErrorMessage("Json数据转换失败,数据未获取");
-        } else {
-            for (UserTitleInfo datum : data) {
-                if (StringUtils.equals(userName, datum.getUsername())) {
-                    PhoneThemeVO phoneThemeVO = new PhoneThemeVO();
-                    phoneThemeVO.setUserName(userName);
-                    phoneThemeVO.setTitle(datum.getTitle());
-                    picList.add("img/" + userName + "/1.png");
-                    picList.add("img/" + userName + "/12.png");
-                    picList.add("img/" + userName + "/mid.png");
-                    picList.add("img/" + userName + "/mid-75.png");
-                    phoneThemeVO.setThemePics(picList);
-                    return ServerResponse.createBySuccess(phoneThemeVO);
-                }
-            }
-        }
-        return ServerResponse.createByError();
-    }
 }
 

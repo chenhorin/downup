@@ -6,13 +6,17 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @Author: 81247
+ * @Description: ${Description}
+ */
 @Data
-public class PhoneThemeVO implements Serializable {
+public class PhonePicListAndThemeVO implements Serializable {
 
-    private static final long serialVersionUID = -1200584792733910681L;
+    private static final long serialVersionUID = -491881712413731571L;
 
-    @JsonProperty("UserName")
-    private String userName;
+    @JsonProperty("picList")
+    private List<PicVO> picResultVOList;
 
     @JsonProperty("title")
     private String title;

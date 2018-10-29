@@ -2,6 +2,7 @@ package net.coding.codingftp.service.impl;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import net.coding.codingftp.VO.PhonePicListAndThemeVO;
 import net.coding.codingftp.VO.PicVO;
 import net.coding.codingftp.common.ServerResponse;
 import net.coding.codingftp.controller.DownloadController;
@@ -47,7 +48,7 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public ServerResponse<Integer> getPicNum(String userName) {
-        if (DownloadController.TOMCAT_PATH == null) {
+        if (null == DownloadController.TOMCAT_PATH) {
             return ServerResponse.createByErrorMessage("还未上传任何文件");
         }
         File file = new File(DownloadController.TOMCAT_PATH);
@@ -71,8 +72,8 @@ public class FileServiceImpl implements IFileService {
 
     @Override
 //    手机端获取图片
-    public ServerResponse<List<PicVO>> getPicList(String userName) {
-        if (DownloadController.TOMCAT_PATH == null) {
+    public ServerResponse<PhonePicListAndThemeVO> getPicList(String userName) {
+        if (null == DownloadController.TOMCAT_PATH) {
             return ServerResponse.createByErrorMessage("还未上传任何文件");
         }
 
@@ -100,7 +101,10 @@ public class FileServiceImpl implements IFileService {
                 picVO.setNumber(++number);
                 picResultVOList.add(picVO);
             }
-            return ServerResponse.createBySuccess(picResultVOList);
+            //组装PicList还需要添加主题和标题
+            PhonePicListAndThemeVO listAndThemeVO = new PhonePicListAndThemeVO();
+            listAndThemeVO.setPicResultVOList(picResultVOList);
+            return ServerResponse.createBySuccess(listAndThemeVO);
         }else {
             return ServerResponse.createByErrorMessage("该用户无图片");
         }

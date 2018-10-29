@@ -3,7 +3,7 @@ package net.coding.codingftp.util;
 import java.io.File;
 import java.util.Comparator;
 
-public class FileCompratorByLastModified implements Comparator<File> {
+public class FileComparetorByLastModified implements Comparator<File> {
     @Override
     public int compare(File o1, File o2) {
         String o1TrueName = o1.getName().substring(0, o1.getName().indexOf("."));
