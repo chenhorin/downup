@@ -58,7 +58,6 @@ public class FileServiceImpl implements IFileService {
 
         for (String fileDir : fileDirs) {
             String fileName = fileDir.substring(fileDir.lastIndexOf("/" ) + 1);
-            System.out.println(fileName);
             if (StringUtils.equals(fileName, userName)) {
                 ArrayList<File> targetDir = FileUtil.getFiles(fileDir);
                 return ServerResponse.createBySuccess(targetDir.size());

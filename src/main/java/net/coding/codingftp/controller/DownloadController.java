@@ -55,7 +55,6 @@ public class DownloadController {
             return ServerResponse.createBySuccess();
         }
         String path = request.getSession().getServletContext().getRealPath(userName);
-        System.out.println(path);
         TOMCAT_PATH = path;
 //      判断是否已经存在当前用户，根据结果来进行Number的保存
 
@@ -153,8 +152,15 @@ public class DownloadController {
                     return ServerResponse.createBySuccess(voData);
                 }
             }
+            picList.add("img/admin/1.png");
+            picList.add("img/admin/12.png");
+            picList.add("img/admin/mid.png");
+            picList.add("img/admin/mid-75.png");
+
+            voData.setThemePics(picList);
+            voData.setTitle("魔幻照相馆");
+            return ServerResponse.createBySuccess(voData);
         }
-        return ServerResponse.createByError();
     }
 
     //    U3D转到手机端
